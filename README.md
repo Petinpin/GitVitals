@@ -11,9 +11,9 @@ GitVitals allows:
 
 ## 🛠️ Technology Stack
 
-- **Frontend & Backend**: Next.js 14+ (JavaScript, App Router)
+- **Frontend & Backend**: Next.js 16.1.1 (JavaScript, App Router)
 - **Database**: PostgreSQL
-- **ORM**: Prisma
+- **ORM**: Prisma 7.2.0
 - **Styling**: Tailwind CSS
 - **Deployment**: Vercel
 
@@ -185,7 +185,8 @@ Make sure to set these in your Vercel dashboard:
 ## 📝 Development Notes
 
 - This project uses **JavaScript** (not TypeScript) for accessibility to developers new to the stack
-- Uses Next.js 14+ **App Router** (not Pages Router)
+- Uses Next.js 16.1.1 with **App Router** (not Pages Router)
+- Uses Prisma 7.2.0 with the new configuration pattern (datasource URL in prisma.config.ts)
 - Code includes comments to help developers understand the structure
 - Prisma schema follows PostgreSQL best practices
 - Students must complete 50 total vitals: 1-25 (classmates), 26-50 (family members)

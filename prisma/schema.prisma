@@ -1,5 +1,6 @@
 // GitVitals Prisma Schema
 // Medical vitals tracking system for students and instructors
+// Note: Prisma 7 uses prisma.config.ts for datasource URL configuration
 
 generator client {
   provider = "prisma-client-js"
@@ -7,6 +8,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  // Database URL is configured in prisma.config.ts (Prisma 7+ pattern)
 }
 
 // Enums
