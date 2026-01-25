@@ -3,28 +3,26 @@
 
 FROM node:20-alpine
 
+# Set working directory
 WORKDIR /app
-
-# Install OpenSSL for Prisma
-RUN apk add --no-cache openssl libc6-compat
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies (including dev)
+# Install dependencies
 RUN npm install
 
-# Copy Prisma schema
-COPY prisma ./prisma
+# Copy prisma schema
+COPY prisma ./prisma/
 
 # Generate Prisma Client
 RUN npx prisma generate
 
-# Copy application code
+# Copy the rest of the application
 COPY . .
 
 # Expose port
 EXPOSE 3000
 
-# Start development server with migrations
-CMD ["sh", "-c", "npx prisma migrate deploy && npm run dev"]
+# Start the development server
+CMD ["npm", "run", "dev"]
