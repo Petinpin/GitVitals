@@ -120,14 +120,15 @@ Port 5432 ───────────────────────�
 │ │ role        │                  │ cohort       │           │
 │ │ canvasId    │                  └────────┬─────┘           │
 │ │ createdAt   │                          │                 │
-│ │ updatedAt   │                  1:N     │                 │
+│ │ updatedAt   │                          │                 │
 │ └─────────────┘                          ▼                 │
 │       ▲                          ┌──────────────┐           │
 │       │                          │ Patient (PK) │           │
-│       │ 1:N                      ├──────────────┤           │
-│       │                          │ id (UUID)    │           │
-│       └──────────────────────────│ studentId(FK)│           │
-│              createdBy           │ name         │           │
+│       │ 0:1 (optional link)      ├──────────────┤           │
+│       └──────────────────────────│ id (UUID)    │           │
+│                User as Patient   │ studentId(FK)│           │
+│                                  │ userId (FK?) │           │
+│                                  │ name         │           │
 │                                  │ relationship │           │
 │                                  │ age          │           │
 │                                  │ gender       │           │
@@ -136,36 +137,43 @@ Port 5432 ───────────────────────�
 │                                           │                 │
 │                                   1:N     │                 │
 │                                           ▼                 │
-│                            ┌──────────────────────┐         │
-│                            │ VitalReading (PK)    │         │
-│                            ├──────────────────────┤         │
-│                            │ id (UUID)            │         │
-│                            │ patientId (FK)       │         │
-│                            │ studentId (FK)       │         │
-│                            │ readingNumber        │         │
-│                            │ bloodPressure...     │         │
-│                            │ heartRate            │         │
-│                            │ temperature          │         │
-│                            │ respiratoryRate      │         │
-│                            │ oxygenSaturation     │         │
-│                            │ submittedAt          │         │
-│                            │ isCorrect            │         │
-│                            └──────────────────────┘         │
+│                            ┌──────────────────────────┐     │
+│                            │ VitalReading (PK)        │     │
+│                            ├──────────────────────────┤     │
+│                            │ id (UUID)                │     │
+│                            │ patientId (FK)           │     │
+│                            │ studentId (FK)           │     │
+│                            │ enteredById (FK User)    │     │
+│                            │ enteredByRole (enum)     │     │
+│                            │ readingNumber            │     │
+│                            │ bloodPressure...         │     │
+│                            │ heartRate                │     │
+│                            │ temperature              │     │
+│                            │ respiratoryRate          │     │
+│                            │ oxygenSaturation         │     │
+│                            │ submittedAt              │     │
+│                            │ isCorrect                │     │
+│                            └──────────────────────────┘     │
 │                                                              │
 │ ┌──────────────────────────────────────────────────────┐    │
 │ │ CorrectVitals (PK)                                   │    │
 │ ├──────────────────────────────────────────────────────┤    │
 │ │ id (UUID)                                            │    │
-│ │ studentId (FK) - Unique (only one set per student)   │    │
+│ │ patientId (FK) - Unique (one set per patient)        │    │
 │ │ bloodPressureSystolic, bloodPressureDiastolic        │    │
 │ │ heartRate, temperature, respiratoryRate              │    │
 │ │ oxygenSaturation                                     │    │
-│ │ createdById (FK) - Which instructor set these        │    │
+│ │ createdById (FK User: INSTRUCTOR)                    │    │
 │ │ createdAt                                            │    │
 │ └──────────────────────────────────────────────────────┘    │
 │                                                              │
 └──────────────────────────────────────────────────────────────┘
 ```
+
+Notes:
+- enteredByRole captures whether the reading was entered by a STUDENT or an INSTRUCTOR; enteredById references the User who entered it.
+- Patient.userId is optional to allow a User to also be represented as a Patient.
+- CorrectVitals are authored by an INSTRUCTOR and used to validate readings for the linked patient.
 
 ---
 
@@ -173,11 +181,11 @@ Port 5432 ───────────────────────�
 
 | Model | Purpose | Relations |
 |-------|---------|-----------|
-| **User** | Authentication & Authorization | Student (1:1), CorrectVitals (1:N) |
-| **Student** | Student Profile | User (1:1), Patient (1:N), VitalReading (1:N) |
-| **Patient** | Patient/Classmate Info | Student (N:1), VitalReading (1:N) |
-| **VitalReading** | Individual Vital Entry | Student (N:1), Patient (N:1) |
-| **CorrectVitals** | Correct Baseline Vitals | Student (N:1), User (N:1) |
+| **User** | Auth & roles | Student (1:1), Patient (0:1 as self), VitalReading (1:N as enteredBy), CorrectVitals (1:N as createdBy - INSTRUCTOR) |
+| **Student** | Student profile | User (1:1), Patient (1:N), VitalReading (1:N) |
+| **Patient** | Patient entity (can be a User) | Student (N:1), User (0:1), VitalReading (1:N), CorrectVitals (1:1) |
+| **VitalReading** | Individual vital entry | Patient (N:1), Student (N:1), EnteredBy User (N:1; role recorded as STUDENT/INSTRUCTOR) |
+| **CorrectVitals** | Baseline set by teacher | Patient (1:1), CreatedBy User (N:1; must be INSTRUCTOR) |
 
 ---
 
