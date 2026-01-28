@@ -1,0 +1,83 @@
+### GitVitals - Instructor API Testing
+### Use this file with REST Client VS Code extension or similar HTTP client
+
+@baseUrl = http://localhost:3000
+@apiBase = {{baseUrl}}/api/instructor
+
+### 1. Get All Submissions (No Filters)
+GET {{apiBase}}/submissions
+Content-Type: application/json
+
+###
+
+### 2. Get Submissions - Filter by Reading Number
+GET {{apiBase}}/submissions?readingNumber=1
+Content-Type: application/json
+
+###
+
+### 3. Get Submissions - Filter by Graded Status (Ungraded Only)
+GET {{apiBase}}/submissions?graded=false
+Content-Type: application/json
+
+###
+
+### 4. Get Submissions - Filter by Cohort
+GET {{apiBase}}/submissions?cohort=Fall2025
+Content-Type: application/json
+
+###
+
+### 5. Get Submissions - With Pagination
+GET {{apiBase}}/submissions?limit=10&offset=0
+Content-Type: application/json
+
+###
+
+### 6. Get Submissions - Date Range Filter
+GET {{apiBase}}/submissions?startDate=2026-01-01&endDate=2026-01-31
+Content-Type: application/json
+
+###
+
+### 7. Get Submissions - Combined Filters
+GET {{apiBase}}/submissions?readingNumber=1&graded=false&cohort=Fall2025
+Content-Type: application/json
+
+###
+
+### 8. Get Roster for Assignment (Reading Number Required)
+GET {{apiBase}}/roster?readingNumber=1
+Content-Type: application/json
+
+###
+
+### 9. Get Roster - Filter by Cohort
+GET {{apiBase}}/roster?readingNumber=1&cohort=Fall2025
+Content-Type: application/json
+
+###
+
+### 10. Get Roster - Filter by Patient
+GET {{apiBase}}/roster?readingNumber=1&patientId=PATIENT_UUID_HERE
+Content-Type: application/json
+
+###
+
+### 11. Get Student History (Replace {id} with student UUID)
+GET {{apiBase}}/students/STUDENT_UUID_HERE/history
+Content-Type: application/json
+
+###
+
+### 12. Get Student History - Filter by Reading Number
+GET {{apiBase}}/students/STUDENT_UUID_HERE/history?readingNumber=1
+Content-Type: application/json
+
+###
+
+### 13. Get Specific Submission (Replace {id} with submission UUID)
+GET {{apiBase}}/submissions/SUBMISSION_UUID_HERE
+Content-Type: application/json
+
+###
