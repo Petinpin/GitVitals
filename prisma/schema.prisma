@@ -1,5 +1,6 @@
 // GitVitals Prisma Schema
 // Medical vitals tracking system for students and instructors
+// Note: Prisma 7 uses prisma.config.ts for datasource URL configuration
 
 generator client {
   provider = "prisma-client-js"
@@ -7,116 +8,149 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // Database URL is configured in prisma.config.ts (Prisma 7+ pattern)
 }
 
-// Enums - mapping to existing Supabase enum
+// Enums
 enum UserRole {
   STUDENT
   INSTRUCTOR
-
-  @@map("user_role")
 }
 
-// User Model
+enum Relationship {
+  CLASSMATE
+  FAMILY_MEMBER
+}
+
+enum ReviewStatus {
+  PENDING
+  AUTO_PASS
+  AUTO_FLAG
+  REVIEWED
+}
+
+// User Model - Base user for authentication and role management
 model User {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id        String   @id @default(uuid())
   email     String   @unique
   name      String
   role      UserRole
-  canvasId  String?  @map("canvas_id")
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  canvasId  String?  // Optional Canvas LMS integration
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  students         Student[]
-  patients         Patient[]
-  vitalReadings    VitalReading[]  @relation("EnteredByUser")
-  createdVitals    CorrectVital[]  @relation("CreatedByUser")
-
-  @@map("users")
+  student        Student?
+  createdVitals  CorrectVitals[] @relation("InstructorCreatedVitals")
 }
 
-// Student Model
+// Student Model - Extended profile for students
 model Student {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId    String   @unique @map("user_id") @db.Uuid
-  studentId String?  @map("student_id")
-  cohort    String?
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id        String  @id @default(uuid())
+  userId    String  @unique
+  studentId String  @unique // Student identifier (e.g., student number)
+  cohort    String? // Optional cohort grouping
 
   // Relations
-  user          User           @relation(fields: [userId], references: [id])
-  patients      Patient[]
-  vitalReadings VitalReading[]
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  patients         Patient[]
+  vitalReadings    VitalReading[]
+  correctVitals    CorrectVitals[]
 
-  @@map("students")
+  // NEW: other students can link you as a classmate-patient
+  asClassmatePatient Patient[] @relation("ClassmateLink")
 }
 
-// Patient Model
+// Patient Model - Patients for whom vitals are recorded
 model Patient {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  studentId      String   @map("student_id") @db.Uuid
-  userId         String?  @map("user_id") @db.Uuid
-  name           String
-  relationship   String?
-  age            Int?
-  gender         String?
-  isBaselineSet  Boolean  @default(false) @map("is_baseline_set")
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id              String       @id @default(uuid())
+  studentId       String
+  name            String
+  relationship    Relationship // CLASSMATE or FAMILY_MEMBER
+  age             Int?
+  gender          String?
+  isBaselineSet   Boolean      @default(false) // For family members baseline tracking
+  createdAt       DateTime     @default(now())
+
+  // NEW: when relationship = CLASSMATE, point to the real Student record
+  classmateStudentId String?
+  classmateStudent   Student?  @relation("ClassmateLink", fields: [classmateStudentId], references: [id], onDelete: SetNull)
 
   // Relations
-  student        Student        @relation(fields: [studentId], references: [id])
-  user           User?          @relation(fields: [userId], references: [id])
+  student        Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
   vitalReadings  VitalReading[]
-  correctVitals  CorrectVital?
 
-  @@map("patients")
+  @@index([studentId])
+  @@index([classmateStudentId])
 }
 
-// VitalReading Model
+// VitalReading Model - Individual vital readings submitted by students
 model VitalReading {
-  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  patientId             String   @map("patient_id") @db.Uuid
-  studentId             String   @map("student_id") @db.Uuid
-  enteredById           String   @map("entered_by_id") @db.Uuid
-  enteredByRole         UserRole @map("entered_by_role")
-  readingNumber         Int      @map("reading_number")
-  bloodPressureSystolic Int      @map("blood_pressure_sys")
-  bloodPressureDiastolic Int     @map("blood_pressure_dia")
-  heartRate             Int      @map("heart_rate")
-  temperature           Decimal  @db.Decimal
-  respiratoryRate       Int      @map("respiratory_rate")
-  oxygenSaturation      Int      @map("oxygen_saturation")
-  submittedAt           DateTime @default(now()) @map("submitted_at") @db.Timestamptz(6)
-  isCorrect             Boolean  @default(false) @map("is_correct")
+  id                      String    @id @default(uuid())
+  patientId               String
+  studentId               String
+  readingNumber           Int       // 1-50: which vital reading this is
+
+  bloodPressureSystolic   Int
+  bloodPressureDiastolic  Int
+  heartRate               Int
+  temperature             Decimal   @db.Decimal(4, 1) // Fahrenheit, e.g., 98.6
+  respiratoryRate         Int
+  oxygenSaturation        Int
+
+  // NEW: US units body measurements
+  heightFt                Int?
+  heightIn                Decimal?  @db.Decimal(4, 1)
+  weightLb                Decimal?  @db.Decimal(6, 1)
+
+  // NEW: infant-only measurements (US units)
+  lengthIn                Decimal?  @db.Decimal(5, 1)
+  headCircumferenceIn     Decimal?  @db.Decimal(5, 1)
+
+  // NEW: pain scale
+  pain0to10               Int?
+
+  // ---- ML outputs (stored per reading) ----
+  mlPFlag                 Float?
+  mlPredFlag              Boolean?
+  mlThreshold             Float?
+  mlReasons               Json?
+  mlModelVersion          String?
+  mlScoredAt              DateTime?
+
+  // ---- Instructor review / labels ----
+  reviewStatus            ReviewStatus @default(PENDING)
+  instructorLabel         Boolean?     // 1 = needs recheck, 0 = ok (training label)
+
+  submittedAt             DateTime  @default(now())
+  gradedAt                DateTime? // When instructor graded this
+  isCorrect               Boolean?  // Grading result (legacy / optional)
+  instructorNotes         String?   @db.Text
+  createdAt               DateTime  @default(now())
 
   // Relations
-  patient   Patient @relation(fields: [patientId], references: [id])
-  student   Student @relation(fields: [studentId], references: [id])
-  enteredBy User    @relation("EnteredByUser", fields: [enteredById], references: [id])
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
-  @@map("vital_readings")
+  @@index([studentId, readingNumber])
+  @@index([patientId])
+  @@index([reviewStatus])
 }
 
-// CorrectVital Model
-model CorrectVital {
-  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  patientId              String   @unique @map("patient_id") @db.Uuid
-  bloodPressureSystolic  Int      @map("blood_pressure_sys")
-  bloodPressureDiastolic Int      @map("blood_pressure_dia")
-  heartRate              Int      @map("heart_rate")
-  temperature            Decimal  @db.Decimal
-  respiratoryRate        Int      @map("respiratory_rate")
-  oxygenSaturation       Int      @map("oxygen_saturation")
-  createdById            String   @map("created_by_id") @db.Uuid
-  createdAt              DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+// CorrectVitals Model - Correct baseline vitals for classmates (readings 1-25)
+model CorrectVitals {
+  id                      String   @id @default(uuid())
+  studentId               String   @unique // The classmate whose correct vitals these are
+  bloodPressureSystolic   Int
+  bloodPressureDiastolic  Int
+  heartRate               Int
+  temperature             Decimal  @db.Decimal(4, 1)
+  respiratoryRate         Int
+  oxygenSaturation        Int
+  createdById             String   // Instructor who set these
+  createdAt               DateTime @default(now())
 
   // Relations
-  patient   Patient @relation(fields: [patientId], references: [id])
-  createdBy User    @relation("CreatedByUser", fields: [createdById], references: [id])
-
-  @@map("correct_vitals")
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  createdBy User    @relation("InstructorCreatedVitals", fields: [createdById], references: [id])
 }
