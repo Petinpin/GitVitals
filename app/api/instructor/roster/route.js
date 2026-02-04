@@ -4,7 +4,7 @@ import prisma from '../../../../lib/prisma.js';
 /**
  * GET /api/instructor/roster
  * Get roster showing which students submitted vs. who didn't for a specific assignment
- * 
+ *
  * Query Parameters:
  * - readingNumber: Required - which assignment (1-50)
  * - cohort: Optional - filter by student cohort
@@ -13,17 +13,14 @@ import prisma from '../../../../lib/prisma.js';
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    
+
     const readingNumber = searchParams.get('readingNumber');
     const cohort = searchParams.get('cohort');
     const patientId = searchParams.get('patientId');
 
     // Validate required parameter
     if (!readingNumber) {
-      return NextResponse.json(
-        { success: false, error: 'readingNumber is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'readingNumber is required' }, { status: 400 });
     }
 
     const readingNum = parseInt(readingNumber);
@@ -56,12 +53,12 @@ export async function GET(request) {
     const submissionWhere = {
       readingNumber: readingNum
     };
-    
+
     if (patientId) {
       submissionWhere.patientId = patientId;
     }
 
-    const submissions = await prisma.vitalReading.findMany({
+    const submissions = await prisma.vitalReadings.findMany({
       where: submissionWhere,
       include: {
         patient: {
@@ -86,7 +83,7 @@ export async function GET(request) {
     const roster = students.map(student => {
       const studentSubmissions = submissionMap.get(student.id) || [];
       const hasSubmitted = studentSubmissions.length > 0;
-      const latestSubmission = hasSubmitted 
+      const latestSubmission = hasSubmitted
         ? studentSubmissions.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt))[0]
         : null;
 
@@ -98,14 +95,16 @@ export async function GET(request) {
         cohort: student.cohort,
         hasSubmitted,
         submissionCount: studentSubmissions.length,
-        latestSubmission: latestSubmission ? {
-          id: latestSubmission.id,
-          submittedAt: latestSubmission.submittedAt,
-          gradedAt: latestSubmission.gradedAt,
-          isCorrect: latestSubmission.isCorrect,
-          patientName: latestSubmission.patient.name,
-          patientId: latestSubmission.patient.id
-        } : null,
+        latestSubmission: latestSubmission
+          ? {
+              id: latestSubmission.id,
+              submittedAt: latestSubmission.submittedAt,
+              gradedAt: latestSubmission.gradedAt,
+              isCorrect: latestSubmission.isCorrect,
+              patientName: latestSubmission.patient.name,
+              patientId: latestSubmission.patient.id
+            }
+          : null,
         allSubmissions: studentSubmissions.map(sub => ({
           id: sub.id,
           submittedAt: sub.submittedAt,
@@ -123,9 +122,8 @@ export async function GET(request) {
       notSubmitted: roster.filter(s => !s.hasSubmitted).length,
       graded: roster.filter(s => s.latestSubmission?.gradedAt).length,
       ungraded: roster.filter(s => s.hasSubmitted && !s.latestSubmission?.gradedAt).length,
-      submissionRate: roster.length > 0 
-        ? ((roster.filter(s => s.hasSubmitted).length / roster.length) * 100).toFixed(2) + '%'
-        : '0%'
+      submissionRate:
+        roster.length > 0 ? ((roster.filter(s => s.hasSubmitted).length / roster.length) * 100).toFixed(2) + '%' : '0%'
     };
 
     return NextResponse.json({
@@ -139,14 +137,13 @@ export async function GET(request) {
         studentsWhoDidNotSubmit: roster.filter(s => !s.hasSubmitted)
       }
     });
-
   } catch (error) {
     console.error('Error fetching roster:', error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Failed to fetch roster',
-        details: error.message 
+        details: error.message
       },
       { status: 500 }
     );

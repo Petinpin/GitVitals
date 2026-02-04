@@ -1,14 +1,14 @@
-import prisma from "@/lib/prisma";
-import Link from "next/link";
+import prisma from '@/lib/prisma';
+import Link from 'next/link';
 
 export default async function InstructorReviewsPage() {
-  const pending = await prisma.vitalReading.findMany({
-    where: { status: "PENDING" },
-    orderBy: { createdAt: "asc" },
+  const pending = await prisma.vitalReadings.findMany({
+    where: { status: 'PENDING' },
+    orderBy: { createdAt: 'asc' },
     include: {
       student: true,
-      patient: true,
-    },
+      patient: true
+    }
   });
 
   return (
@@ -16,7 +16,7 @@ export default async function InstructorReviewsPage() {
       <h1 style={{ fontSize: 22, fontWeight: 700 }}>Pending reviews</h1>
 
       <div style={{ marginTop: 16 }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
               <th style={th}>Created</th>
@@ -26,13 +26,13 @@ export default async function InstructorReviewsPage() {
             </tr>
           </thead>
           <tbody>
-            {pending.map((r) => (
+            {pending.map(r => (
               <tr key={r.id}>
                 <td style={td}>{new Date(r.createdAt).toLocaleString()}</td>
                 <td style={td}>{r.student?.name ?? r.studentId}</td>
                 <td style={td}>{r.patient?.name ?? r.patientId}</td>
                 <td style={td}>
-                  <Link href={`/instructor/reviews/${r.id}`} style={{ textDecoration: "underline" }}>
+                  <Link href={`/instructor/reviews/${r.id}`} style={{ textDecoration: 'underline' }}>
                     Review
                   </Link>
                 </td>
@@ -51,7 +51,7 @@ export default async function InstructorReviewsPage() {
       </div>
 
       <div style={{ marginTop: 18 }}>
-        <Link href="/" style={{ textDecoration: "underline" }}>
+        <Link href="/" style={{ textDecoration: 'underline' }}>
           Back
         </Link>
       </div>
@@ -59,5 +59,5 @@ export default async function InstructorReviewsPage() {
   );
 }
 
-const th = { textAlign: "left", borderBottom: "1px solid #ddd", padding: "10px 8px" };
-const td = { borderBottom: "1px solid #eee", padding: "10px 8px", verticalAlign: "top" };
+const th = { textAlign: 'left', borderBottom: '1px solid #ddd', padding: '10px 8px' };
+const td = { borderBottom: '1px solid #eee', padding: '10px 8px', verticalAlign: 'top' };

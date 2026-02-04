@@ -1,6 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient({
-  engineType: 'binary',
+  engineType: 'binary'
 });
 
 async function main() {
@@ -14,7 +14,7 @@ async function main() {
   // For now, let's just create some patients and vitals using existing user IDs
   // First, let's check if there are any users
   const existingUsers = await prisma.user.findMany({ take: 5 });
-  
+
   if (existingUsers.length === 0) {
     console.log('❌ No users found in database.');
     console.log('💡 You need to create users through Supabase Auth first.');
@@ -23,7 +23,7 @@ async function main() {
   }
 
   console.log(`✓ Found ${existingUsers.length} existing user(s)`);
-  
+
   // Use first user as instructor, rest as students
   const instructorUser = existingUsers.find(u => u.role === 'INSTRUCTOR') || existingUsers[0];
   const studentUsers = existingUsers.filter(u => u.role === 'STUDENT').slice(0, 3);
@@ -75,7 +75,7 @@ async function main() {
     });
 
     // Create a vital reading submission
-    await prisma.vitalReading.create({
+    await prisma.vitalReadings.create({
       data: {
         patientId: patient.id,
         studentId: students[i].id,
@@ -99,7 +99,7 @@ async function main() {
 }
 
 main()
-  .catch((e) => {
+  .catch(e => {
     console.error('❌ Seed error:', e);
     process.exit(1);
   })

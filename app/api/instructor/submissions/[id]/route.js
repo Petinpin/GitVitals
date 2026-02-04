@@ -10,7 +10,7 @@ export async function GET(request, { params }) {
     const { id } = params;
 
     // Fetch the submission with all related data
-    const submission = await prisma.vitalReading.findUnique({
+    const submission = await prisma.vitalReadings.findUnique({
       where: { id },
       include: {
         student: {
@@ -29,10 +29,7 @@ export async function GET(request, { params }) {
     });
 
     if (!submission) {
-      return NextResponse.json(
-        { success: false, error: 'Submission not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'Submission not found' }, { status: 404 });
     }
 
     // Fetch the correct answer key
@@ -62,42 +59,60 @@ export async function GET(request, { params }) {
           correct: correctVitals.bloodPressureSystolic,
           isCorrect: submission.bloodPressureSystolic === correctVitals.bloodPressureSystolic,
           difference: submission.bloodPressureSystolic - correctVitals.bloodPressureSystolic,
-          percentDiff: ((submission.bloodPressureSystolic - correctVitals.bloodPressureSystolic) / correctVitals.bloodPressureSystolic * 100).toFixed(2)
+          percentDiff: (
+            ((submission.bloodPressureSystolic - correctVitals.bloodPressureSystolic) /
+              correctVitals.bloodPressureSystolic) *
+            100
+          ).toFixed(2)
         },
         bloodPressureDiastolic: {
           submitted: submission.bloodPressureDiastolic,
           correct: correctVitals.bloodPressureDiastolic,
           isCorrect: submission.bloodPressureDiastolic === correctVitals.bloodPressureDiastolic,
           difference: submission.bloodPressureDiastolic - correctVitals.bloodPressureDiastolic,
-          percentDiff: ((submission.bloodPressureDiastolic - correctVitals.bloodPressureDiastolic) / correctVitals.bloodPressureDiastolic * 100).toFixed(2)
+          percentDiff: (
+            ((submission.bloodPressureDiastolic - correctVitals.bloodPressureDiastolic) /
+              correctVitals.bloodPressureDiastolic) *
+            100
+          ).toFixed(2)
         },
         heartRate: {
           submitted: submission.heartRate,
           correct: correctVitals.heartRate,
           isCorrect: submission.heartRate === correctVitals.heartRate,
           difference: submission.heartRate - correctVitals.heartRate,
-          percentDiff: ((submission.heartRate - correctVitals.heartRate) / correctVitals.heartRate * 100).toFixed(2)
+          percentDiff: (((submission.heartRate - correctVitals.heartRate) / correctVitals.heartRate) * 100).toFixed(2)
         },
         temperature: {
           submitted: parseFloat(submission.temperature),
           correct: parseFloat(correctVitals.temperature),
           isCorrect: parseFloat(submission.temperature) === parseFloat(correctVitals.temperature),
           difference: (parseFloat(submission.temperature) - parseFloat(correctVitals.temperature)).toFixed(1),
-          percentDiff: (((parseFloat(submission.temperature) - parseFloat(correctVitals.temperature)) / parseFloat(correctVitals.temperature)) * 100).toFixed(2)
+          percentDiff: (
+            ((parseFloat(submission.temperature) - parseFloat(correctVitals.temperature)) /
+              parseFloat(correctVitals.temperature)) *
+            100
+          ).toFixed(2)
         },
         respiratoryRate: {
           submitted: submission.respiratoryRate,
           correct: correctVitals.respiratoryRate,
           isCorrect: submission.respiratoryRate === correctVitals.respiratoryRate,
           difference: submission.respiratoryRate - correctVitals.respiratoryRate,
-          percentDiff: ((submission.respiratoryRate - correctVitals.respiratoryRate) / correctVitals.respiratoryRate * 100).toFixed(2)
+          percentDiff: (
+            ((submission.respiratoryRate - correctVitals.respiratoryRate) / correctVitals.respiratoryRate) *
+            100
+          ).toFixed(2)
         },
         oxygenSaturation: {
           submitted: submission.oxygenSaturation,
           correct: correctVitals.oxygenSaturation,
           isCorrect: submission.oxygenSaturation === correctVitals.oxygenSaturation,
           difference: submission.oxygenSaturation - correctVitals.oxygenSaturation,
-          percentDiff: ((submission.oxygenSaturation - correctVitals.oxygenSaturation) / correctVitals.oxygenSaturation * 100).toFixed(2)
+          percentDiff: (
+            ((submission.oxygenSaturation - correctVitals.oxygenSaturation) / correctVitals.oxygenSaturation) *
+            100
+          ).toFixed(2)
         }
       };
 
@@ -105,7 +120,7 @@ export async function GET(request, { params }) {
       const correctCount = Object.values(comparison).filter(
         field => typeof field === 'object' && field.isCorrect
       ).length;
-      
+
       comparison.summary = {
         totalFields: 6,
         correctFields: correctCount,
@@ -124,14 +139,13 @@ export async function GET(request, { params }) {
         hasAnswerKey: !!correctVitals
       }
     });
-
   } catch (error) {
     console.error('Error fetching submission:', error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Failed to fetch submission',
-        details: error.message 
+        details: error.message
       },
       { status: 500 }
     );
@@ -141,7 +155,7 @@ export async function GET(request, { params }) {
 /**
  * PATCH /api/instructor/submissions/[id]
  * Grade a submission and add instructor feedback
- * 
+ *
  * Request Body:
  * {
  *   isCorrect: boolean,  // Overall grading result
@@ -156,14 +170,11 @@ export async function PATCH(request, { params }) {
 
     // Validate input
     if (typeof isCorrect !== 'boolean') {
-      return NextResponse.json(
-        { success: false, error: 'isCorrect must be a boolean' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'isCorrect must be a boolean' }, { status: 400 });
     }
 
     // Update the submission with grading
-    const updatedSubmission = await prisma.vitalReading.update({
+    const updatedSubmission = await prisma.vitalReadings.update({
       where: { id },
       data: {
         isCorrect,
@@ -194,22 +205,18 @@ export async function PATCH(request, { params }) {
       message: 'Submission graded successfully',
       data: updatedSubmission
     });
-
   } catch (error) {
     console.error('Error grading submission:', error);
-    
+
     if (error.code === 'P2025') {
-      return NextResponse.json(
-        { success: false, error: 'Submission not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'Submission not found' }, { status: 404 });
     }
 
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Failed to grade submission',
-        details: error.message 
+        details: error.message
       },
       { status: 500 }
     );

@@ -1,13 +1,13 @@
-import prisma from "@/lib/prisma";
-import Link from "next/link";
-import { redirect } from "next/navigation";
+import prisma from '@/lib/prisma';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
 export default async function InstructorReviewDetailPage({ params }) {
   const { id } = params;
 
-  const submission = await prisma.vitalReading.findUnique({
+  const submission = await prisma.vitalReadings.findUnique({
     where: { id },
-    include: { student: true, patient: true },
+    include: { student: true, patient: true }
   });
 
   if (!submission) {
@@ -15,7 +15,7 @@ export default async function InstructorReviewDetailPage({ params }) {
       <div style={{ padding: 24 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700 }}>Review</h1>
         <p>Submission not found.</p>
-        <Link href="/instructor/reviews" style={{ textDecoration: "underline" }}>
+        <Link href="/instructor/reviews" style={{ textDecoration: 'underline' }}>
           Back to pending list
         </Link>
       </div>
@@ -23,22 +23,22 @@ export default async function InstructorReviewDetailPage({ params }) {
   }
 
   async function publishReview(formData) {
-    "use server";
+    'use server';
 
-    const decision = String(formData.get("decision") || "");
-    const notes = String(formData.get("notes") || "").trim();
-    const grade = decision === "correct" ? 100 : 0;
+    const decision = String(formData.get('decision') || '');
+    const notes = String(formData.get('notes') || '').trim();
+    const grade = decision === 'correct' ? 100 : 0;
 
-    await prisma.vitalReading.update({
-      where: { id: String(formData.get("id")) },
+    await prisma.vitalReadings.update({
+      where: { id: String(formData.get('id')) },
       data: {
         grade,
         instructorNotes: notes,
-        status: "REVIEWED",
-      },
+        status: 'REVIEWED'
+      }
     });
 
-    redirect("/instructor/reviews");
+    redirect('/instructor/reviews');
   }
 
   return (
@@ -49,7 +49,7 @@ export default async function InstructorReviewDetailPage({ params }) {
         Status: <b>{submission.status}</b>
       </p>
 
-      <div style={{ marginTop: 14, padding: 14, border: "1px solid #eee", borderRadius: 10 }}>
+      <div style={{ marginTop: 14, padding: 14, border: '1px solid #eee', borderRadius: 10 }}>
         <div style={{ marginBottom: 8 }}>
           <b>Student:</b> {submission.student?.name ?? submission.studentId}
         </div>
@@ -75,14 +75,14 @@ export default async function InstructorReviewDetailPage({ params }) {
       <form action={publishReview} style={{ marginTop: 18 }}>
         <input type="hidden" name="id" value={submission.id} />
 
-        <div style={{ padding: 14, border: "1px solid #eee", borderRadius: 10 }}>
+        <div style={{ padding: 14, border: '1px solid #eee', borderRadius: 10 }}>
           <div style={{ fontWeight: 700, marginBottom: 8 }}>Decision</div>
 
-          <label style={{ display: "block", marginBottom: 6 }}>
+          <label style={{ display: 'block', marginBottom: 6 }}>
             <input type="radio" name="decision" value="correct" required /> Correct
           </label>
 
-          <label style={{ display: "block", marginBottom: 12 }}>
+          <label style={{ display: 'block', marginBottom: 12 }}>
             <input type="radio" name="decision" value="incorrect" required /> Incorrect
           </label>
 
@@ -92,11 +92,11 @@ export default async function InstructorReviewDetailPage({ params }) {
             rows={5}
             placeholder="Write feedback for the student..."
             style={{
-              width: "100%",
+              width: '100%',
               padding: 10,
               borderRadius: 10,
-              border: "1px solid #ddd",
-              resize: "vertical",
+              border: '1px solid #ddd',
+              resize: 'vertical'
             }}
           />
 
@@ -104,21 +104,20 @@ export default async function InstructorReviewDetailPage({ params }) {
             type="submit"
             style={{
               marginTop: 12,
-              padding: "10px 14px",
+              padding: '10px 14px',
               borderRadius: 10,
-              border: "1px solid #111",
-              background: "#111",
-              color: "white",
-              cursor: "pointer",
-            }}
-          >
+              border: '1px solid #111',
+              background: '#111',
+              color: 'white',
+              cursor: 'pointer'
+            }}>
             Publish review
           </button>
         </div>
       </form>
 
       <div style={{ marginTop: 18 }}>
-        <Link href="/instructor/reviews" style={{ textDecoration: "underline" }}>
+        <Link href="/instructor/reviews" style={{ textDecoration: 'underline' }}>
           Back to pending list
         </Link>
       </div>
@@ -127,5 +126,5 @@ export default async function InstructorReviewDetailPage({ params }) {
 }
 
 function safe(v) {
-  return v === null || v === undefined ? "-" : v;
+  return v === null || v === undefined ? '-' : v;
 }

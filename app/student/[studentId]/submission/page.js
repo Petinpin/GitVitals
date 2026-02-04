@@ -1,15 +1,15 @@
-import prisma from "@/lib/prisma";
-import Link from "next/link";
+import prisma from '@/lib/prisma';
+import Link from 'next/link';
 
 export default async function StudentSubmissionsPage({ params }) {
   const { studentId } = params;
 
-  const submissions = await prisma.vitalReading.findMany({
+  const submissions = await prisma.vitalReadings.findMany({
     where: { studentId },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
     include: {
-      patient: true,
-    },
+      patient: true
+    }
   });
 
   return (
@@ -20,7 +20,7 @@ export default async function StudentSubmissionsPage({ params }) {
       </p>
 
       <div style={{ marginTop: 16 }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
               <th style={th}>Date</th>
@@ -32,18 +32,18 @@ export default async function StudentSubmissionsPage({ params }) {
             </tr>
           </thead>
           <tbody>
-            {submissions.map((r) => (
+            {submissions.map(r => (
               <tr key={r.id}>
                 <td style={td}>{formatDate(r.createdAt)}</td>
                 <td style={td}>{r.patient?.name ?? r.patientId}</td>
                 <td style={td}>
                   HR: {safe(r.heartRate)} | RR: {safe(r.respRate)} | Temp: {safe(r.tempF)}°F
-                  {" | "}BP: {safe(r.systolicBp)}/{safe(r.diastolicBp)}
-                  {" | "}SpO₂: {safe(r.spo2Pct)}%
+                  {' | '}BP: {safe(r.systolicBp)}/{safe(r.diastolicBp)}
+                  {' | '}SpO₂: {safe(r.spo2Pct)}%
                 </td>
                 <td style={td}>{r.status}</td>
-                <td style={td}>{r.grade ?? "-"}</td>
-                <td style={td}>{r.instructorNotes ?? "-"}</td>
+                <td style={td}>{r.grade ?? '-'}</td>
+                <td style={td}>{r.instructorNotes ?? '-'}</td>
               </tr>
             ))}
 
@@ -59,7 +59,7 @@ export default async function StudentSubmissionsPage({ params }) {
       </div>
 
       <div style={{ marginTop: 18 }}>
-        <Link href="/" style={{ textDecoration: "underline" }}>
+        <Link href="/" style={{ textDecoration: 'underline' }}>
           Back
         </Link>
       </div>
@@ -67,8 +67,8 @@ export default async function StudentSubmissionsPage({ params }) {
   );
 }
 
-const th = { textAlign: "left", borderBottom: "1px solid #ddd", padding: "10px 8px" };
-const td = { borderBottom: "1px solid #eee", padding: "10px 8px", verticalAlign: "top" };
+const th = { textAlign: 'left', borderBottom: '1px solid #ddd', padding: '10px 8px' };
+const td = { borderBottom: '1px solid #eee', padding: '10px 8px', verticalAlign: 'top' };
 
 function formatDate(d) {
   try {
@@ -79,5 +79,5 @@ function formatDate(d) {
 }
 
 function safe(v) {
-  return v === null || v === undefined ? "-" : v;
+  return v === null || v === undefined ? '-' : v;
 }

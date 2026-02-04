@@ -4,7 +4,7 @@ import prisma from '../../../../../../lib/prisma.js';
 /**
  * GET /api/instructor/students/[id]/history
  * Get all submissions for a specific student with comparison to correct answers
- * 
+ *
  * Query Parameters:
  * - includeGraded: Include graded submissions (default: true)
  * - includeUngraded: Include ungraded submissions (default: true)
@@ -16,7 +16,7 @@ export async function GET(request, { params }) {
   try {
     const { id: studentId } = params;
     const { searchParams } = new URL(request.url);
-    
+
     const includeGraded = searchParams.get('includeGraded') !== 'false';
     const includeUngraded = searchParams.get('includeUngraded') !== 'false';
     const startDate = searchParams.get('startDate');
@@ -37,10 +37,7 @@ export async function GET(request, { params }) {
     });
 
     if (!student) {
-      return NextResponse.json(
-        { success: false, error: 'Student not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'Student not found' }, { status: 404 });
     }
 
     // Build where clause
@@ -66,7 +63,7 @@ export async function GET(request, { params }) {
     }
 
     // Fetch all submissions for this student
-    const submissions = await prisma.vitalReading.findMany({
+    const submissions = await prisma.vitalReadings.findMany({
       where,
       include: {
         patient: {
@@ -77,15 +74,12 @@ export async function GET(request, { params }) {
           }
         }
       },
-      orderBy: [
-        { readingNumber: 'asc' },
-        { submittedAt: 'desc' }
-      ]
+      orderBy: [{ readingNumber: 'asc' }, { submittedAt: 'desc' }]
     });
 
     // Get correct vitals for comparison
     const submissionsWithComparison = await Promise.all(
-      submissions.map(async (submission) => {
+      submissions.map(async submission => {
         const correctVitals = await prisma.correctVitals.findUnique({
           where: {
             patientId_readingNumber: {
@@ -106,13 +100,25 @@ export async function GET(request, { params }) {
 
           comparison = {
             bloodPressure: {
-              systolic: { correct: bpSysCorrect, diff: submission.bloodPressureSystolic - correctVitals.bloodPressureSystolic },
-              diastolic: { correct: bpDiaCorrect, diff: submission.bloodPressureDiastolic - correctVitals.bloodPressureDiastolic }
+              systolic: {
+                correct: bpSysCorrect,
+                diff: submission.bloodPressureSystolic - correctVitals.bloodPressureSystolic
+              },
+              diastolic: {
+                correct: bpDiaCorrect,
+                diff: submission.bloodPressureDiastolic - correctVitals.bloodPressureDiastolic
+              }
             },
             heartRate: { correct: hrCorrect, diff: submission.heartRate - correctVitals.heartRate },
-            temperature: { correct: tempCorrect, diff: (parseFloat(submission.temperature) - parseFloat(correctVitals.temperature)).toFixed(1) },
+            temperature: {
+              correct: tempCorrect,
+              diff: (parseFloat(submission.temperature) - parseFloat(correctVitals.temperature)).toFixed(1)
+            },
             respiratoryRate: { correct: rrCorrect, diff: submission.respiratoryRate - correctVitals.respiratoryRate },
-            oxygenSaturation: { correct: o2Correct, diff: submission.oxygenSaturation - correctVitals.oxygenSaturation },
+            oxygenSaturation: {
+              correct: o2Correct,
+              diff: submission.oxygenSaturation - correctVitals.oxygenSaturation
+            },
             allCorrect: bpSysCorrect && bpDiaCorrect && hrCorrect && tempCorrect && rrCorrect && o2Correct
           };
         }
@@ -134,9 +140,13 @@ export async function GET(request, { params }) {
       incorrectSubmissions: submissions.filter(s => s.isCorrect === false).length,
       uniqueReadingNumbers: [...new Set(submissions.map(s => s.readingNumber))].sort((a, b) => a - b),
       completionPercentage: ((submissions.length / 50) * 100).toFixed(2) + '%', // Out of 50 total
-      accuracyRate: submissions.filter(s => s.gradedAt).length > 0
-        ? ((submissions.filter(s => s.isCorrect === true).length / submissions.filter(s => s.gradedAt).length) * 100).toFixed(2) + '%'
-        : 'N/A'
+      accuracyRate:
+        submissions.filter(s => s.gradedAt).length > 0
+          ? (
+              (submissions.filter(s => s.isCorrect === true).length / submissions.filter(s => s.gradedAt).length) *
+              100
+            ).toFixed(2) + '%'
+          : 'N/A'
     };
 
     // Group submissions by reading number
@@ -163,14 +173,13 @@ export async function GET(request, { params }) {
         stats
       }
     });
-
   } catch (error) {
     console.error('Error fetching student history:', error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Failed to fetch student history',
-        details: error.message 
+        details: error.message
       },
       { status: 500 }
     );
