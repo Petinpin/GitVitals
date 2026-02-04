@@ -2,11 +2,11 @@ import prisma from '@/lib/prisma';
 import Link from 'next/link';
 
 export default async function StudentSubmissionsPage({ params }) {
-  const { studentId } = params;
+  const { studentId } = await params;
 
   const submissions = await prisma.vitalReadings.findMany({
     where: { studentId },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { submittedAt: 'desc' },
     include: {
       patient: true
     }
@@ -34,7 +34,7 @@ export default async function StudentSubmissionsPage({ params }) {
           <tbody>
             {submissions.map(r => (
               <tr key={r.id}>
-                <td style={td}>{formatDate(r.createdAt)}</td>
+                <td style={td}>{formatDate(r.submittedAt)}</td>
                 <td style={td}>{r.patient?.name ?? r.patientId}</td>
                 <td style={td}>
                   HR: {safe(r.heartRate)} | RR: {safe(r.respRate)} | Temp: {safe(r.tempF)}°F

@@ -57,7 +57,7 @@ export default async function InstructorReviewDetailPage({ params }) {
           <b>Person:</b> {submission.patient?.name ?? submission.patientId}
         </div>
         <div style={{ marginBottom: 8 }}>
-          <b>Created:</b> {new Date(submission.createdAt).toLocaleString()}
+          <b>Created:</b> {new Date(submission.submittedAt).toLocaleString()}
         </div>
 
         <div style={{ marginTop: 10 }}>

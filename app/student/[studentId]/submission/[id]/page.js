@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 export default async function StudentSubmissionDetailPage({ params }) {
-  const { studentId, id } = params;
+  const { studentId, id } = await params;
 
   const r = await prisma.vitalReadings.findFirst({
     where: {
@@ -27,7 +27,7 @@ export default async function StudentSubmissionDetailPage({ params }) {
 
       <div style={{ marginTop: 16, lineHeight: 1.6 }}>
         <div>
-          <b>Date:</b> {new Date(r.createdAt).toLocaleString()}
+          <b>Date:</b> {new Date(r.submittedAt).toLocaleString()}
         </div>
         <div>
           <b>Person:</b> {r.patient?.name ?? r.patientId}

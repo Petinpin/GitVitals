@@ -4,7 +4,7 @@ import Link from 'next/link';
 export default async function InstructorReviewsPage() {
   const pending = await prisma.vitalReadings.findMany({
     where: { status: 'PENDING' },
-    orderBy: { createdAt: 'asc' },
+    orderBy: { submittedAt: 'asc' },
     include: {
       student: true,
       patient: true
@@ -28,7 +28,7 @@ export default async function InstructorReviewsPage() {
           <tbody>
             {pending.map(r => (
               <tr key={r.id}>
-                <td style={td}>{new Date(r.createdAt).toLocaleString()}</td>
+                <td style={td}>{new Date(r.submittedAt).toLocaleString()}</td>
                 <td style={td}>{r.student?.name ?? r.studentId}</td>
                 <td style={td}>{r.patient?.name ?? r.patientId}</td>
                 <td style={td}>
