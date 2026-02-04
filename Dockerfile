@@ -19,8 +19,11 @@ RUN npm install
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
 
-# Clear any cached prisma clients and generate fresh
-RUN rm -rf node_modules/.prisma && rm -rf node_modules/@prisma/client && npx prisma generate
+# Provide a default DATABASE_URL for prisma generate during build
+ENV DATABASE_URL="postgresql://username:password@localhost:5432/gitvitals"
+
+# Generate Prisma client
+RUN npx prisma generate
 
 # Copy the rest of the application
 COPY . .

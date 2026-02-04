@@ -1,7 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient({
-  engineType: 'binary',
-});
+process.env.PRISMA_CLIENT_ENGINE_TYPE = 'binary';
+const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Starting seed...');
