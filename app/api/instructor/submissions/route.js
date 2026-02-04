@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import prisma from '../../../../lib/prisma.js';
+import prisma from '@/lib/prisma.js';
 
 /**
  * GET /api/instructor/submissions
  * Get all submissions for instructor review with auto-comparison to correct answers
- * 
+ *
  * Query Parameters:
  * - cohort: Filter by student cohort
  * - graded: Filter by grading status (true/false)
@@ -17,7 +17,7 @@ import prisma from '../../../../lib/prisma.js';
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    
+
     // Parse query parameters
     const cohort = searchParams.get('cohort');
     const graded = searchParams.get('graded');
@@ -55,7 +55,7 @@ export async function GET(request) {
     }
 
     // Fetch submissions with related data
-    const submissions = await prisma.vitalReading.findMany({
+    const submissions = await prisma.vitalReadings.findMany({
       where,
       include: {
         student: {
@@ -76,21 +76,19 @@ export async function GET(request) {
           }
         }
       },
-      orderBy: [
-        { submittedAt: 'desc' }
-      ],
+      orderBy: [{ submittedAt: 'desc' }],
       take: limit,
       skip: offset
     });
 
     // Get total count for pagination
-    const totalCount = await prisma.vitalReading.count({ where });
+    const totalCount = await prisma.vitalReadings.count({ where });
 
     // For each submission, fetch the correct answer key and compare
     const submissionsWithComparison = await Promise.all(
-      submissions.map(async (submission) => {
+      submissions.map(async submission => {
         // Fetch the correct vitals for this patient
-        const correctVitals = await prisma.correctVital.findUnique({
+        const correctVitals = await prisma.correctVitals.findUnique({
           where: {
             patientId: submission.patientId
           }
@@ -163,14 +161,13 @@ export async function GET(request) {
         hasMore: offset + limit < totalCount
       }
     });
-
   } catch (error) {
     console.error('Error fetching submissions:', error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Failed to fetch submissions',
-        details: error.message 
+        details: error.message
       },
       { status: 500 }
     );

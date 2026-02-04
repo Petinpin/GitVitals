@@ -17,7 +17,7 @@ model User {
   createdVitals   CorrectVitals[] @relation("CreatedByUser")
   patients        Patient[]
   students        Student?
-  enteredReadings VitalReading[]  @relation("EnteredByUser")
+  enteredReadings VitalReadings[]  @relation("EnteredByUser")
 
   @@map("users")
 }
@@ -31,7 +31,7 @@ model Student {
   updatedAt     DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
   patients      Patient[]
   user          User           @relation(fields: [userId], references: [id])
-  vitalReadings VitalReading[]
+  vitalReadings VitalReadings[]
 
   @@map("students")
 }
@@ -50,7 +50,7 @@ model Patient {
   correctVitals CorrectVitals?
   student       Student        @relation(fields: [studentId], references: [id])
   user          User?          @relation(fields: [userId], references: [id])
-  vitalReadings VitalReading[]
+  vitalReadings VitalReadings[]
 
   @@map("patients")
 }
@@ -72,7 +72,7 @@ model CorrectVitals {
   @@map("correct_vitals")
 }
 
-model VitalReading {
+model VitalReadings {
   id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   patientId        String    @map("patient_id") @db.Uuid
   studentId        String    @map("student_id") @db.Uuid
