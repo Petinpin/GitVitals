@@ -38,7 +38,7 @@ model Student {
 
 model Patient {
   id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  studentId     String         @map("student_id") @db.Uuid
+  studentId     String?         @map("student_id") @db.Uuid
   userId        String?        @map("user_id") @db.Uuid
   name          String
   relationship  String?
@@ -48,7 +48,7 @@ model Patient {
   createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
   correctVitals CorrectVitals?
-  student       Student        @relation(fields: [studentId], references: [id])
+  student       Student?        @relation(fields: [studentId], references: [id])
   user          User?          @relation(fields: [userId], references: [id])
   vitalReadings VitalReadings[]
 
