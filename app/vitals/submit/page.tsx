@@ -1,9 +1,7 @@
 "use client"
 
-import React from "react"
-
-import { useState } from "react"
-import { Search, CheckCircle2, AlertTriangle } from "lucide-react"
+import React, { useState } from "react"
+import { Search, CheckCircle2, AlertTriangle, Activity } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -53,18 +51,18 @@ const initialValues: FormValues = {
   pain_0_10: "",
 }
 
-const fields: { key: keyof FormValues; label: string; placeholder: string; step?: string }[] = [
-  { key: "age_years", label: "Age (years)", placeholder: "e.g. 35" },
-  { key: "heart_rate", label: "Heart Rate (bpm)", placeholder: "e.g. 72" },
-  { key: "resp_rate", label: "Respiratory Rate (rpm)", placeholder: "e.g. 16" },
-  { key: "temp_f", label: "Temperature (F)", placeholder: "e.g. 98.6", step: "0.1" },
-  { key: "spo2_pct", label: "Pulse Oximetry (%)", placeholder: "e.g. 98" },
-  { key: "pain_0_10", label: "Pain (0-10)", placeholder: "e.g. 3" },
-  { key: "systolic_bp", label: "Systolic BP (mmHg)", placeholder: "e.g. 120" },
-  { key: "diastolic_bp", label: "Diastolic BP (mmHg)", placeholder: "e.g. 80" },
-  { key: "height_ft", label: "Height (ft)", placeholder: "e.g. 5" },
-  { key: "height_in", label: "Height (in)", placeholder: "e.g. 10" },
-  { key: "weight_lb", label: "Weight (lb)", placeholder: "e.g. 165" },
+const fields: { key: keyof FormValues; label: string; placeholder: string; step?: string; unit?: string }[] = [
+  { key: "age_years", label: "Age", placeholder: "35", unit: "years" },
+  { key: "heart_rate", label: "Heart Rate", placeholder: "72", unit: "bpm" },
+  { key: "resp_rate", label: "Respiratory Rate", placeholder: "16", unit: "rpm" },
+  { key: "temp_f", label: "Temperature", placeholder: "98.6", step: "0.1", unit: "°F" },
+  { key: "spo2_pct", label: "Pulse Oximetry", placeholder: "98", unit: "%" },
+  { key: "pain_0_10", label: "Pain Level", placeholder: "3", unit: "0-10" },
+  { key: "systolic_bp", label: "Systolic BP", placeholder: "120", unit: "mmHg" },
+  { key: "diastolic_bp", label: "Diastolic BP", placeholder: "80", unit: "mmHg" },
+  { key: "height_ft", label: "Height (ft)", placeholder: "5", unit: "ft" },
+  { key: "height_in", label: "Height (in)", placeholder: "10", unit: "in" },
+  { key: "weight_lb", label: "Weight", placeholder: "165", unit: "lb" },
 ]
 
 export default function SubmitVitalsPage() {
@@ -120,18 +118,24 @@ export default function SubmitVitalsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Submit Patient Vitals</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Record vital signs for a registered patient. All fields are required.
-        </p>
+      <div className="flex items-center gap-3">
+        <Activity className="h-8 w-8 text-primary" />
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Submit Patient Vitals</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Record vital signs for a registered patient with ML-powered risk assessment.
+          </p>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         {/* Patient Selection */}
-        <Card className="border-border">
+        <Card className="border-border shadow-sm transition-shadow hover:shadow-md">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base text-foreground">Patient Selection</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base text-foreground">
+              <Search className="h-5 w-5 text-primary" />
+              Patient Selection
+            </CardTitle>
             <CardDescription>Search and select the patient you are examining</CardDescription>
           </CardHeader>
           <CardContent>
@@ -147,17 +151,17 @@ export default function SubmitVitalsPage() {
                   value={searchTerm}
                   onChange={(e) => handleSearch(e.target.value)}
                   placeholder="Start typing a patient name..."
-                  className="pl-9"
+                  className="pl-9 transition-all focus:ring-2 focus:ring-primary/20"
                 />
               </div>
               {filteredPatients.length > 0 && (
-                <div className="absolute left-0 right-0 top-full z-10 mt-1 overflow-hidden rounded-lg border border-border bg-card shadow-md">
+                <div className="absolute left-0 right-0 top-full z-10 mt-1 overflow-hidden rounded-lg border border-border bg-card shadow-lg animate-in fade-in slide-in-from-top-2">
                   {filteredPatients.map((p) => (
                     <button
                       key={p.id}
                       type="button"
                       onClick={() => selectPatient(p)}
-                      className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-muted"
+                      className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-primary/10"
                     >
                       {p.name}
                     </button>
@@ -165,26 +169,33 @@ export default function SubmitVitalsPage() {
                 </div>
               )}
               {selectedPatient && (
-                <p className="mt-2 text-sm text-primary">
-                  Selected: <span className="font-medium">{selectedPatient.name}</span>
-                </p>
+                <div className="mt-3 flex items-center gap-2 rounded-md bg-primary/10 px-3 py-2">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  <p className="text-sm font-medium text-primary">
+                    Selected: {selectedPatient.name}
+                  </p>
+                </div>
               )}
             </div>
           </CardContent>
         </Card>
 
         {/* Vitals Measurements */}
-        <Card className="border-border">
+        <Card className="border-border shadow-sm transition-shadow hover:shadow-md">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base text-foreground">Vitals Measurements</CardTitle>
-            <CardDescription>Enter all measured vital signs</CardDescription>
+            <CardTitle className="flex items-center gap-2 text-base text-foreground">
+              <Activity className="h-5 w-5 text-primary" />
+              Vitals Measurements
+            </CardTitle>
+            <CardDescription>Enter all measured vital signs with units</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {fields.map((field) => (
                 <div key={field.key} className="flex flex-col gap-1.5">
-                  <Label htmlFor={field.key} className="text-sm">
+                  <Label htmlFor={field.key} className="text-sm font-medium">
                     {field.label}
+                    {field.unit && <span className="ml-1 text-muted-foreground">({field.unit})</span>}
                   </Label>
                   <Input
                     id={field.key}
@@ -194,6 +205,7 @@ export default function SubmitVitalsPage() {
                     placeholder={field.placeholder}
                     value={formValues[field.key]}
                     onChange={updateField(field.key)}
+                    className="transition-all focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
               ))}
@@ -204,9 +216,10 @@ export default function SubmitVitalsPage() {
         <Button
           type="submit"
           size="lg"
-          className="w-full sm:w-auto sm:self-end"
+          className="w-full shadow-md transition-all hover:shadow-lg sm:w-auto sm:self-end"
           disabled={!selectedPatient}
         >
+          <Activity className="mr-2 h-5 w-5" />
           Submit Vitals
         </Button>
       </form>
@@ -215,29 +228,41 @@ export default function SubmitVitalsPage() {
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader className="items-center text-center">
-            <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-accent">
-              <CheckCircle2 className="h-6 w-6 text-primary" />
+            <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+              <CheckCircle2 className="h-8 w-8 text-primary" />
             </div>
-            <DialogTitle>Submission Complete</DialogTitle>
+            <DialogTitle className="text-xl">Submission Complete</DialogTitle>
             <DialogDescription>
-              The vitals have been recorded successfully.
+              The vitals have been recorded successfully and analyzed by our ML model.
             </DialogDescription>
           </DialogHeader>
           {prediction && (
-            <div className="flex items-center gap-3 rounded-lg bg-muted p-4">
-              <AlertTriangle className="h-5 w-5 shrink-0 text-warning" />
+            <div className={`flex items-start gap-3 rounded-lg p-4 ${
+              prediction.pred_flag === 1 ? 'bg-destructive/10 border border-destructive/20' : 'bg-primary/10 border border-primary/20'
+            }`}>
+              <AlertTriangle className={`h-5 w-5 shrink-0 mt-0.5 ${
+                prediction.pred_flag === 1 ? 'text-destructive' : 'text-primary'
+              }`} />
               <div>
-                <p className="text-sm font-medium text-foreground">
-                  Risk Level: {prediction.pred_flag === 1 ? "High" : "Low"}
+                <p className="text-sm font-semibold text-foreground">
+                  Risk Assessment: {prediction.pred_flag === 1 ? "⚠️ High Risk" : "✓ Low Risk"}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  Probability: {prediction.p_flag.toFixed(4)}
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Model Confidence: {(prediction.p_flag * 100).toFixed(2)}%
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {prediction.pred_flag === 1 
+                    ? "The vitals indicate elevated risk. Consider immediate clinical review." 
+                    : "The vitals appear within normal ranges based on ML analysis."}
                 </p>
               </div>
             </div>
           )}
           <DialogFooter>
-            <Button onClick={() => setShowModal(false)} className="w-full">
+            <Button 
+              onClick={() => setShowModal(false)} 
+              className="w-full shadow-sm"
+            >
               Close
             </Button>
           </DialogFooter>

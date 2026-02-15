@@ -5,7 +5,7 @@ import React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Activity, Eye, EyeOff } from "lucide-react"
+import { Activity, Eye, EyeOff, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -61,6 +61,19 @@ export default function LoginPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred during sign in.")
     } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    setError("")
+    setLoading(true)
+
+    try {
+      // Simulate OAuth flow
+      router.push("/dashboard")
+    } catch (err) {
+      setError("Google sign-in failed. Please try again.")
       setLoading(false)
     }
   }
@@ -141,6 +154,26 @@ export default function LoginPage() {
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+            >
+              <Mail className="mr-2 h-4 w-4" />
+              Sign in with Google
+            </Button>
 
             <p className="text-center text-sm text-muted-foreground">
               {"Don't have an account? "}
