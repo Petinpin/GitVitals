@@ -26,6 +26,8 @@ Before you begin, ensure you have the following installed:
 
 ## 🚀 Getting Started
 
+**Quick Start**: See [docs/quick-start.md](docs/quick-start.md) for a streamlined setup guide.
+
 ### 1. Clone the Repository
 
 ```bash
@@ -263,5 +265,9 @@ For issues and questions:
 
 Built with ❤️ for medical assisting education
 
-## Docs
-- [Class Diagram](docs/class-diagram.md)
+## 📚 Documentation
+
+- [Quick Start Guide](docs/quick-start.md) - Get up and running in 10 minutes
+- [Deployment Checklist](docs/deployment-checklist.md) - Production deployment guide
+- [Instructor API](docs/instructor-api.md) - API documentation for instructors
+- [Class Diagram](docs/class-diagram.md) - Database schema and relationships
