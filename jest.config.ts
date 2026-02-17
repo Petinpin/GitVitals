@@ -19,6 +19,15 @@ const config: Config = {
     '!**/*.d.ts',
     '!**/node_modules/**',
   ],
+  // Concurrency and parallelism configuration
+  maxWorkers: '50%',      // Uses 50% of available CPU cores for parallel test execution
+  bail: false,            // Continue running tests even if some fail
+  testTimeout: 10000,     // 10 second timeout for async tests
+  globals: {
+    'ts-jest': {
+      isolatedModules: true, // Improves performance for TypeScript
+    },
+  },
 }
 
 export default createJestConfig(config)
