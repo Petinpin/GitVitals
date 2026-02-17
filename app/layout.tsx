@@ -5,8 +5,6 @@ import { Header } from "@/components/header"
 
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
-
 export const metadata: Metadata = {
   title: 'GitVitals - Clinical Management System',
   description: 'A modern clinical management system for students and instructors to manage patient vitals.',
@@ -29,6 +27,7 @@ export default function RootLayout({
         <Header />
         {children}
       </body>
+      <body className="font-sans antialiased">{children}</body>
     </html>
   )
 }
