@@ -8,5 +8,8 @@
     "vitalreading"
   ],
   "python-envs.defaultEnvManager": "ms-python.python:system",
-  "python-envs.pythonProjects": []
+  "python-envs.pythonProjects": [],
+  "jest.jestCommandLine": "npm test --",
+  "jest.autoRun": "off",
+  "jest.runMode": "on-demand"
 }
